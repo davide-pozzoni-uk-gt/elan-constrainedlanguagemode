@@ -41,9 +41,9 @@ $_ext = ".exe"
 # CLM-safe temp path: [System.IO.Path]::GetTempPath() is a static method call
 # on a non-allow-listed type and is blocked in ConstrainedLanguage. Use the
 # environment variable instead (reading $env: is permitted in CLM).
-$temp = $env:TEMP
-if (-not $temp) { $temp = $env:TMP }
-
+$temp = $env:TMP
+if (-not $temp) { $temp = $env:TEMP }
+if (-not $temp) { $temp = $env:USERPROFILE }
 $_dir = Join-Path $temp "elan"
 
 if (-not (Test-Path -Path $_dir)) {
