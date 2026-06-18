@@ -37,8 +37,15 @@ param(
 # There are no Windows ARM releases yet, use emulated x64
 $_arch = "x86_64-pc-windows-msvc"
 $_ext = ".exe"
-$temp = [System.IO.Path]::GetTempPath()
+
+# CLM-safe temp path: [System.IO.Path]::GetTempPath() is a static method call
+# on a non-allow-listed type and is blocked in ConstrainedLanguage. Use the
+# environment variable instead (reading $env: is permitted in CLM).
+$temp = $env:TEMP
+if (-not $temp) { $temp = $env:TMP }
+
 $_dir = Join-Path $temp "elan"
+
 if (-not (Test-Path -Path $_dir)) {
     $null = New-Item -ItemType Directory -Path $_dir
 }
