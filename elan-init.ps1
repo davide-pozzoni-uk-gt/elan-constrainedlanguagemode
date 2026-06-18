@@ -38,12 +38,20 @@ param(
 $_arch = "x86_64-pc-windows-msvc"
 $_ext = ".exe"
 
-# CLM-safe temp path: [System.IO.Path]::GetTempPath() is a static method call
-# on a non-allow-listed type and is blocked in ConstrainedLanguage. Use the
-# environment variable instead (reading $env: is permitted in CLM).
-$temp = $env:TMP
-if (-not $temp) { $temp = $env:TEMP }
-if (-not $temp) { $temp = $env:USERPROFILE }
+if ($ExecutionContext.SessionState.LanguageMode -eq 'FullLanguage') {
+    $temp = [System.IO.Path]::GetTempPath()
+}
+else
+{
+    # CLM-safe temp path: [System.IO.Path]::GetTempPath() is a static method call on a non-allow-listed type and is blocked in ConstrainedLanguage. 
+    # Use the environment variable instead (reading $env: is permitted in CLM) to mirror the lookup behaviour of [System.IO.Path]::GetTempPath()
+    $temp = $env:TMP
+    if (-not $temp) { $temp = $env:TEMP }
+    if (-not $temp) { $temp = $env:USERPROFILE }
+    if (-not $temp) { $temp = $env:SystemRoot }
+    if (-not $temp) { throw "Unable to resolve a temporary directory. All candidate sources (TMP/TEMP/USERPROFILE/SystemRoot) were not found." }
+}
+
 $_dir = Join-Path $temp "elan"
 
 if (-not (Test-Path -Path $_dir)) {
